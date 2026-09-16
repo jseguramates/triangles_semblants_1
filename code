@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Semblança de triangles — Pràctica</title>
+<style>
+  :root{
+    --bg:#f4f6fb;
+    --card:#ffffff;
+    --ink:#1f2937;
+    --muted:#6b7280;
+    --accent:#5b5fef;
+    --accent-dark:#4347c9;
+    --green:#1a9e6b;
+    --green-bg:#e6f7f0;
+    --red:#d64545;
+    --red-bg:#fdeaea;
+    --amber:#b8860b;
+    --amber-bg:#fdf5e2;
+    --border:#e3e6ef;
+    --radius:16px;
+    --s1:#2563eb;
+    --s2:#d97706;
+    --s3:#7c3aed;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:20px 16px 60px;}
+  header.top{
+    text-align:center;
+    margin-bottom:18px;
+  }
+  header.top h1{
+    font-size:1.5rem;
+    margin:0 0 4px;
+    color:var(--accent-dark);
+  }
+  header.top p{
+    margin:0;
+    color:var(--muted);
+    font-size:0.95rem;
+  }
+  .howto{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:14px 18px;
+    margin-bottom:14px;
+    font-size:0.92rem;
+    color:var(--muted);
+  }
+  .howto summary{
+    cursor:pointer;
+    font-weight:600;
+    color:var(--accent-dark);
+    font-size:0.95rem;
+  }
+  .howto ul{margin:10px 0 0;padding-left:20px;}
+  .howto li{margin-bottom:4px;}
+
+  .theory-row{text-align:center;margin-bottom:18px;}
+
+  .stepper{
+    display:flex;
+    gap:6px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .dot{
+    width:34px;height:34px;
+    border-radius:50%;
+    border:2px solid var(--border);
+    background:var(--card);
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.85rem;font-weight:600;
+    color:var(--muted);
+    cursor:pointer;
+    position:relative;
+    transition:all .15s;
+  }
+  .dot:hover{border-color:var(--accent);}
+  .dot.current{border-color:var(--accent-dark);background:var(--accent-dark);color:#fff;}
+  .dot.done{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+  .dot.done.wrong{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+  .dot.revealed{border-color:var(--amber);background:var(--amber-bg);color:var(--amber);}
+  .dot.flag::after{
+    content:"🚩";
+    position:absolute;
+    top:-9px;right:-7px;
+    font-size:0.7rem;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    padding:22px 20px 24px;
+    box-shadow:0 1px 3px rgba(20,20,50,0.04);
+  }
+  .card-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .card-head h2{margin:0;font-size:1.15rem;}
+  .flag-btn{
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:0.85rem;
+    cursor:pointer;
+    color:var(--muted);
+    display:flex;align-items:center;gap:6px;
+    transition:all .15s;
+  }
+  .flag-btn.active{background:var(--amber-bg);border-color:var(--amber);color:var(--amber);}
+
+  .svg-box{
+    width:100%;
+    overflow-x:auto;
+    background:#fbfbfe;
+    border-radius:12px;
+    border:1px solid var(--border);
+    margin-bottom:12px;
+  }
+  .svg-box svg{display:block;min-width:560px;width:100%;height:auto;}
+
+  .side-legend{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin:0 0 16px;
+  }
+  .chip{
+    padding:3px 12px;
+    border-radius:999px;
+    font-size:0.8rem;
+    font-weight:700;
+    color:#fff;
+  }
+  .chip-s1{background:var(--s1);}
+  .chip-s2{background:var(--s2);}
+  .chip-s3{background:var(--s3);}
+
+  .triangles-inputs{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(200px,1fr));
+    gap:14px;
+    margin-bottom:18px;
+  }
+  .tri-panel{
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 14px;
+    background:#fafbff;
+  }
+  .tri-panel h3{
+    margin:0 0 8px;
+    font-size:0.95rem;
+    color:var(--accent-dark);
+  }
+  .tri-panel .ref-tag{
+    font-size:0.78rem;
+    color:var(--green);
+    background:var(--green-bg);
+    border-radius:999px;
+    padding:2px 8px;
+    margin-left:6px;
+  }
+  .field{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .field label{font-size:0.88rem;color:var(--muted);min-width:66px;}
+  .field input{
+    flex:1;
+    padding:8px 10px;
+    border-radius:8px;
+    border:1.5px solid var(--border);
+    font-size:1rem;
+    font-family:inherit;
+    transition:border-color .15s, background .15s;
+  }
+  .field input:focus{outline:none;border-color:var(--accent);}
+  .field input.correct{border-color:var(--green);background:var(--green-bg);}
+  .field input.incorrect{border-color:var(--red);background:var(--red-bg);}
+  .field input.revealed{border-color:var(--amber);background:var(--amber-bg);color:#7a5b00;font-weight:600;}
+  .field .hint-btn{
+    border:none;
+    background:var(--accent);
+    color:#fff;
+    width:30px;height:30px;
+    border-radius:50%;
+    cursor:pointer;
+    font-size:0.85rem;
+    font-weight:700;
+    flex-shrink:0;
+  }
+  .field .hint-btn:hover{background:var(--accent-dark);}
+  .no-unknowns{color:var(--muted);font-size:0.88rem;font-style:italic;}
+
+  .hint-box{
+    background:var(--amber-bg);
+    border:1px solid #f0dca0;
+    border-radius:10px;
+    padding:8px 12px;
+    font-size:0.85rem;
+    color:#7a5b00;
+    margin:-2px 0 10px;
+    display:none;
+  }
+  .hint-box.show{display:block;}
+
+  .solution-steps{
+    margin:4px 0 18px;
+    padding:14px 16px;
+    background:#fafbff;
+    border:1px solid var(--border);
+    border-radius:12px;
+  }
+  .solution-steps h3{margin:0 0 10px;font-size:1rem;color:var(--accent-dark);}
+  .sol-item{margin-bottom:14px;}
+  .sol-item:last-child{margin-bottom:0;}
+  .sol-chip{
+    display:inline-block;
+    padding:3px 10px;
+    border-radius:999px;
+    font-size:0.78rem;
+    font-weight:700;
+    border:1.5px solid;
+    margin-bottom:6px;
+  }
+  .sol-item ol{margin:6px 0 6px 20px;padding:0;font-size:0.88rem;color:var(--ink);}
+  .sol-item li{margin-bottom:3px;}
+  .sol-answer{font-size:0.9rem;color:var(--accent-dark);}
+
+  .actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .actions .left, .actions .right{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  button.btn{
+    border:none;
+    border-radius:10px;
+    padding:11px 18px;
+    font-size:0.95rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:var(--accent-dark);}
+  .btn-secondary{background:#fff;border:1.5px solid var(--border) !important;color:var(--ink);}
+  .btn-secondary:hover{border-color:var(--accent) !important;}
+  .btn-secondary:disabled{opacity:0.45;cursor:not-allowed;}
+  .btn-ghost{background:transparent;color:var(--muted);text-decoration:underline;padding:11px 6px;}
+
+  .feedback-banner{
+    margin-top:14px;
+    padding:10px 14px;
+    border-radius:10px;
+    font-size:0.9rem;
+    display:none;
+  }
+  .feedback-banner.show{display:block;}
+  .feedback-banner.ok{background:var(--green-bg);color:var(--green);}
+  .feedback-banner.bad{background:var(--red-bg);color:var(--red);}
+
+  .summary{
+    text-align:center;
+  }
+  .summary .score{
+    font-size:2.6rem;
+    font-weight:800;
+    color:var(--accent-dark);
+    margin:6px 0;
+  }
+  .summary table{
+    width:100%;
+    border-collapse:collapse;
+    margin:20px 0;
+    font-size:0.9rem;
+  }
+  .summary th, .summary td{
+    padding:8px 10px;
+    border-bottom:1px solid var(--border);
+    text-align:left;
+  }
+  .summary th{color:var(--muted);font-weight:600;}
+  .pill{
+    display:inline-block;
+    padding:2px 10px;
+    border-radius:999px;
+    font-size:0.78rem;
+    font-weight:600;
+  }
+  .pill.ok{background:var(--green-bg);color:var(--green);}
+  .pill.bad{background:var(--red-bg);color:var(--red);}
+  .pill.info{background:var(--amber-bg);color:var(--amber);}
+
+  .example-steps p{margin:8px 0;font-size:0.92rem;color:var(--ink);}
+
+  .modal-overlay{
+    position:fixed;inset:0;
+    background:rgba(20,20,40,0.55);
+    display:none;
+    align-items:center;justify-content:center;
+    padding:20px;
+    z-index:50;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    background:#fff;
+    border-radius:16px;
+    max-width:640px;width:100%;
+    max-height:85vh;overflow-y:auto;
+    padding:20px 22px;
+  }
+  .modal-head{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    margin-bottom:6px;gap:10px;
+  }
+  .modal-head h2{margin:0;font-size:1.15rem;color:var(--accent-dark);}
+  .modal-close{
+    border:none;background:transparent;
+    font-size:1.3rem;cursor:pointer;color:var(--muted);
+    line-height:1;flex-shrink:0;
+  }
+  .modal-close:hover{color:var(--ink);}
+
+  footer.credits{
+    text-align:center;
+    color:var(--muted);
+    font-size:0.78rem;
+    margin-top:26px;
+  }
+
+  @media (max-width:520px){
+    .card{padding:16px 12px 18px;}
+    .field label{min-width:52px;font-size:0.82rem;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>📐 Semblança de triangles</h1>
+    <p>Practica com trobar costats desconeguts en conjunts de triangles semblants</p>
+  </header>
+
+  <details class="howto">
+    <summary>Com funciona?</summary>
+    <ul>
+      <li>Cada conjunt mostra <strong>tres triangles semblants</strong>, dibuixats amb les mides reals proporcionals: un costat més llarg es veu més llarg. Un dels tres té <strong>tots els costats coneguts</strong> (és el triangle de referència).</li>
+      <li>Els costats es diuen <strong>S1, S2 i S3</strong> (mateixa posició relativa a cada triangle) per facilitar-ne la comparació.</li>
+      <li>Els triangles apareixen <strong>girats i, alguns, reflectits</strong> perquè no els puguis identificar només per l'orientació: has de fixar-te en els valors numèrics, no en la forma dibuixada.</li>
+      <li>Pots consultar la teoria i un exemple resolt en qualsevol moment amb el botó <strong>📘 Teoria i exemple</strong>.</li>
+      <li>Demana fins a 3 pistes per costat amb el botó <strong>?</strong>. Si t'encalles, pots prémer <strong>👀 Veure solució</strong> per veure com es resol tot el conjunt, amb els costats corresponents pintats del mateix color.</li>
+      <li>Marca un conjunt com a pendent de revisar (🚩) i mou-te lliurement entre conjunts amb els cercles de dalt. Els decimals es poden escriure amb punt o amb coma.</li>
+    </ul>
+  </details>
+
+  <div class="theory-row">
+    <button class="btn btn-secondary" id="theoryBtn">📘 Teoria i exemple resolt</button>
+  </div>
+
+  <div class="stepper" id="stepper"></div>
+
+  <div id="cardArea"></div>
+
+  <footer class="credits">Institut de Deltebre · Matemàtiques · Semblança de triangles</footer>
+</div>
+
+<div class="modal-overlay" id="theoryModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>Teoria: com trobar costats en triangles semblants</h2>
+      <button class="modal-close" id="theoryClose">✕</button>
+    </div>
+    <div id="theoryBody"></div>
+  </div>
+</div>
+
+<script>
+/* ---------------------------------------------------------
+   DADES DELS CONJUNTS DE TRIANGLES
+   Cada triangle té:
+     sides = [S1,S2,S3] (null = desconegut, es mostra "?")
+     rot   = graus de rotació del dibuix (només visual)
+     flip  = si es dibuixa reflectit (mirall)
+   unknowns: { t: index triangle, s: index costat (0,1,2), answer, hints:[3] }
+--------------------------------------------------------- */
+const SETS = [
+  {
+    triangles:[
+      {sides:[3,4,5], rot:0,   flip:false},
+      {sides:[6,null,10], rot:35, flip:false},
+      {sides:[null,6,null], rot:-50, flip:true}
+    ],
+    unknowns:[
+      {t:1,s:1,answer:8, hints:[
+        "En triangles semblants, tots els costats corresponents estan multiplicats per la mateixa raó (raó de semblança).",
+        "Compara el costat S1 del triangle de referència (3) amb el S1 del triangle 2 (6). Quina raó hi ha entre ells?",
+        "La raó és 6 ÷ 3 = 2. Per tant, S2 del triangle 2 val 4 × 2 = 8."
+      ]},
+      {t:2,s:0,answer:4.5, hints:[
+        "Busca dos costats corresponents que coneguis en aquest triangle i en el de referència.",
+        "Compara S2: en el triangle 3 val 6, i en el de referència val 4.",
+        "La raó és 6 ÷ 4 = 1,5. Per tant, S1 del triangle 3 val 3 × 1,5 = 4,5."
+      ]},
+      {t:2,s:2,answer:7.5, hints:[
+        "Ja has calculat la raó de semblança entre aquest triangle i el de referència a l'apartat anterior.",
+        "La raó entre el triangle 3 i el de referència és 1,5.",
+        "S3 del triangle 3 val 5 × 1,5 = 7,5."
+      ]}
+    ]
+  },
+  {
+    triangles:[
+      {sides:[4,6,8], rot:15, flip:false},
+      {sides:[6,null,null], rot:-25, flip:true},
+      {sides:[null,null,20], rot:60, flip:false}
+    ],
+    unknowns:[
+      {t:1,s:1,answer:9, hints:[
+        "Compara els costats S1 dels dos triangles per trobar la raó.",
+        "S1 val 6 en el triangle 2 i 4 en el de referència.",
+        "Raó = 6 ÷ 4 = 1,5. S2 = 6 × 1,5 = 9."
+      ]},
+      {t:1,s:2,answer:12, hints:[
+        "Ja coneixes la raó de semblança d'aquest triangle respecte al de referència.",
+        "La raó és 1,5 (calculada a partir de S1).",
+        "S3 = 8 × 1,5 = 12."
+      ]},
+      {t:2,s:0,answer:10, hints:[
+        "Compara el costat S3, que coneixes en aquest triangle i en el de referència.",
+        "S3 val 20 en el triangle 3 i 8 en el de referència.",
+        "Raó = 20 ÷ 8 = 2,5. S1 = 4 × 2,5 = 10."
+      ]},
+      {t:2,s:1,answer:15, hints:[
+        "Fes servir la raó que ja has trobat per a aquest triangle.",
+        "La raó és 2,5.",
+        "S2 = 6 × 2,5 = 15."
+      ]}
+    ]
+  },
+  {
+    triangles:[
+      {sides:[5,12,13], rot:-10, flip:false},
+      {sides:[null,24,null], rot:90, flip:false},
+      {sides:[2.5,null,null], rot:20, flip:true}
+    ],
+    unknowns:[
+      {t:1,s:0,answer:10, hints:[
+        "Compara S2, que coneixes en aquest triangle i en el de referència.",
+        "S2 val 24 en el triangle 2 i 12 en el de referència.",
+        "Raó = 24 ÷ 12 = 2. S1 = 5 × 2 = 10."
+      ]},
+      {t:1,s:2,answer:26, hints:[
+        "Utilitza la raó que ja has calculat per a aquest triangle.",
+        "La raó és 2.",
+        "S3 = 13 × 2 = 26."
+      ]},
+      {t:2,s:1,answer:6, hints:[
+        "Compara S1, que coneixes en aquest triangle i en el de referència.",
+        "S1 val 2,5 en el triangle 3 i 5 en el de referència.",
+        "Raó = 2,5 ÷ 5 = 0,5. S2 = 12 × 0,5 = 6."
+      ]},
+      {t:2,s:2,answer:6.5, hints:[
+        "Fes servir la raó que ja has trobat per a aquest triangle.",
+        "La raó és 0,5.",
+        "S3 = 13 × 0,5 = 6,5."
+      ]}
+    ]
+  },
+  {
+    triangles:[
+      {sides:[7,9,11], rot:200, flip:false},
+      {sides:[null,null,22], rot:-45, flip:false},
+      {sides:[3.5,null,null], rot:10, flip:true}
+    ],
+    unknowns:[
+      {t:1,s:0,answer:14, hints:[
+        "Compara S3, que coneixes en aquest triangle i en el de referència.",
+        "S3 val 22 en el triangle 2 i 11 en el de referència.",
+        "Raó = 22 ÷ 11 = 2. S1 = 7 × 2 = 14."
+      ]},
+      {t:1,s:1,answer:18, hints:[
+        "Utilitza la raó que ja has calculat per a aquest triangle.",
+        "La raó és 2.",
+        "S2 = 9 × 2 = 18."
+      ]},
+      {t:2,s:1,answer:4.5, hints:[
+        "Compara S1, que coneixes en aquest triangle i en el de referència.",
+        "S1 val 3,5 en el triangle 3 i 7 en el de referència.",
+        "Raó = 3,5 ÷ 7 = 0,5. S2 = 9 × 0,5 = 4,5."
+      ]},
+      {t:2,s:2,answer:5.5, hints:[
+        "Fes servir la raó que ja has trobat per a aquest triangle.",
+        "La raó és 0,5.",
+        "S3 = 11 × 0,5 = 5,5."
+      ]}
+    ]
+  },
+  {
+    triangles:[
+      {sides:[null,null,3.5], rot:140, flip:true},
+      {sides:[16,null,null], rot:-70, flip:false},
+      {sides:[4,5,7], rot:0, flip:false}
+    ],
+    unknowns:[
+      {t:0,s:0,answer:2, hints:[
+        "El triangle de referència aquí és el tercer (té tots els costats coneguts).",
+        "Compara S3: 3,5 en aquest triangle i 7 en el de referència.",
+        "Raó = 3,5 ÷ 7 = 0,5. S1 = 4 × 0,5 = 2."
+      ]},
+      {t:0,s:1,answer:2.5, hints:[
+        "Utilitza la raó que ja has trobat per a aquest triangle.",
+        "La raó és 0,5.",
+        "S2 = 5 × 0,5 = 2,5."
+      ]},
+      {t:1,s:1,answer:20, hints:[
+        "Compara S1, que coneixes en aquest triangle i en el de referència (tercer triangle).",
+        "S1 val 16 aquí i 4 en el de referència.",
+        "Raó = 16 ÷ 4 = 4. S2 = 5 × 4 = 20."
+      ]},
+      {t:1,s:2,answer:28, hints:[
+        "Fes servir la raó que ja has trobat per a aquest triangle.",
+        "La raó és 4.",
+        "S3 = 7 × 4 = 28."
+      ]}
+    ]
+  },
+  {
+    triangles:[
+      {sides:[5,8,10], rot:0, flip:false},
+      {sides:[6,null,null], rot:55, flip:true},
+      {sides:[null,null,25], rot:-100, flip:false}
+    ],
+    unknowns:[
+      {t:1,s:1,answer:9.6, hints:[
+        "Compara S1, que coneixes en aquest triangle i en el de referència.",
+        "S1 val 6 aquí i 5 en el de referència.",
+        "Raó = 6 ÷ 5 = 1,2. S2 = 8 × 1,2 = 9,6."
+      ]},
+      {t:1,s:2,answer:12, hints:[
+        "Utilitza la raó que ja has trobat per a aquest triangle.",
+        "La raó és 1,2.",
+        "S3 = 10 × 1,2 = 12."
+      ]},
+      {t:2,s:0,answer:12.5, hints:[
+        "Compara S3, que coneixes en aquest triangle i en el de referència.",
+        "S3 val 25 aquí i 10 en el de referència.",
+        "Raó = 25 ÷ 10 = 2,5. S1 = 5 × 2,5 = 12,5."
+      ]},
+      {t:2,s:1,answer:20, hints:[
+        "Fes servir la raó que ja has trobat per a aquest triangle.",
+        "La raó és 2,5.",
+        "S2 = 8 × 2,5 = 20."
+      ]}
+    ]
+  },
+  {
+    triangles:[
+      {sides:[6,null,14], rot:-30, flip:true},
+      {sides:[9,15,21], rot:0, flip:false},
+      {sides:[null,25,null], rot:80, flip:false}
+    ],
+    unknowns:[
+      {t:0,s:1,answer:10, hints:[
+        "El triangle de referència aquí és el segon (té tots els costats coneguts).",
+        "Compara S1: 6 en aquest triangle i 9 en el de referència.",
+        "Raó = 6 ÷ 9 = 2/3. S2 = 15 × 2/3 = 10."
+      ]},
+      {t:2,s:0,answer:15, hints:[
+        "Compara S2, que coneixes en aquest triangle i en el de referència.",
+        "S2 val 25 aquí i 15 en el de referència.",
+        "Raó = 25 ÷ 15 = 5/3. S1 = 9 × 5/3 = 15."
+      ]},
+      {t:2,s:2,answer:35, hints:[
+        "Fes servir la raó que ja has trobat per a aquest triangle.",
+        "La raó és 5/3.",
+        "S3 = 21 × 5/3 = 35."
+      ]}
+    ]
+  },
+  {
+    triangles:[
+      {sides:[3,3,3], rot:0, flip:false},
+      {sides:[null,7.5,null], rot:40, flip:false},
+      {sides:[9,null,9], rot:-20, flip:true}
+    ],
+    unknowns:[
+      {t:1,s:0,answer:7.5, hints:[
+        "Aquest triangle és equilàter: si un costat és 7,5, els altres també ho són!",
+        "En un triangle equilàter tots els costats són iguals.",
+        "S1 = S2 = 7,5."
+      ]},
+      {t:1,s:2,answer:7.5, hints:[
+        "Recorda que en un triangle equilàter tots els costats mesuren el mateix.",
+        "Ja saps que S2 val 7,5.",
+        "S3 = 7,5."
+      ]},
+      {t:2,s:1,answer:9, hints:[
+        "Compara qualsevol costat conegut d'aquest triangle amb el de referència.",
+        "S1 val 9 aquí i 3 en el de referència.",
+        "Raó = 9 ÷ 3 = 3. Com que és equilàter, tots els costats valen 9."
+      ]}
+    ]
+  }
+];
+
+const EXAMPLE_SET = {
+  triangles:[
+    {sides:[3,4,5], rot:0, flip:false, forceRef:true},
+    {sides:[6,8,10], rot:35, flip:false, forceRef:false},
+    {sides:[4.5,6,7.5], rot:-50, flip:true, forceRef:false}
+  ],
+  unknowns:[]
+};
+
+const SIDE_COLORS = ['#2563eb','#d97706','#7c3aed']; // S1, S2, S3
+
+/* ---------------------------------------------------------
+   ESTAT
+--------------------------------------------------------- */
+const state = SETS.map(()=>({
+  answers:{},
+  checked:{},
+  hintLevel:{},
+  flagged:false,
+  submitted:false,
+  allCorrect:false,
+  failedAttempts:0,
+  solutionRevealed:false
+}));
+let current = 0;
+let finished = false;
+let showIntro = true;
+
+const stepperEl = document.getElementById('stepper');
+const cardArea = document.getElementById('cardArea');
+
+/* ---------------------------------------------------------
+   HELPERS DE DADES
+--------------------------------------------------------- */
+function getRealSides(setData, tIdx){
+  const tri = setData.triangles[tIdx];
+  return tri.sides.map((v,eIdx)=>{
+    if(v!==null) return v;
+    const u = setData.unknowns.find(u=>u.t===tIdx && u.s===eIdx);
+    return u.answer;
+  });
+}
+
+/* ---------------------------------------------------------
+   HELPERS GEOMÈTRICS (mides reals proporcionals)
+--------------------------------------------------------- */
+function lawOfCosinesVertices(s0,s1,s2){
+  const v0 = {x:0,y:0};
+  const v1 = {x:s0,y:0};
+  let cosA = (s0*s0 + s2*s2 - s1*s1) / (2*s0*s2);
+  cosA = Math.max(-1, Math.min(1, cosA));
+  const angleA = Math.acos(cosA);
+  const v2 = {x: s2*Math.cos(angleA), y: s2*Math.sin(angleA)};
+  return [v0,v1,v2];
+}
+function transformPoints(pts, rotDeg, flip){
+  const cx = (pts[0].x+pts[1].x+pts[2].x)/3;
+  const cy = (pts[0].y+pts[1].y+pts[2].y)/3;
+  const rad = rotDeg*Math.PI/180;
+  const cosT = Math.cos(rad), sinT = Math.sin(rad);
+  return pts.map(p=>{
+    let x = p.x, y = p.y;
+    if(flip){ x = 2*cx - x; }
+    const dx = x-cx, dy = y-cy;
+    const rx = dx*cosT - dy*sinT;
+    const ry = dx*sinT + dy*cosT;
+    return {x: cx+rx, y: cy+ry};
+  });
+}
+function boundingBox(pts){
+  const xs = pts.map(p=>p.x), ys = pts.map(p=>p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  return {minX,maxX,minY,maxY,w:maxX-minX,h:maxY-minY};
+}
+function centroidOf(pts){
+  return {
+    x:(pts[0].x+pts[1].x+pts[2].x)/3,
+    y:(pts[0].y+pts[1].y+pts[2].y)/3
+  };
+}
+function labelPos(p1,p2,centroid,dist){
+  const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+  let nx = -(p2.y-p1.y), ny=(p2.x-p1.x);
+  const len = Math.hypot(nx,ny)||1;
+  nx/=len; ny/=len;
+  const dx=mx-centroid.x, dy=my-centroid.y;
+  if(nx*dx+ny*dy<0){nx=-nx; ny=-ny;}
+  return {x:mx+nx*dist, y:my+ny*dist};
+}
+function fmtNum(n){
+  if(n===null) return '?';
+  const r = Math.round(n*100)/100;
+  return (r % 1 === 0) ? String(r) : String(r).replace('.',',');
+}
+
+const TARGET_MAX_PX = 175;
+const LABEL_PAD = 55;
+const CELL_SIZE = TARGET_MAX_PX + 2*LABEL_PAD;
+const GAP = 22;
+
+/* ---------------------------------------------------------
+   RENDER SVG D'UN CONJUNT (mides reals + rotació/mirall)
+   opts.colorBySide  -> pinta cada costat segons S1/S2/S3 (correspondència)
+   opts.revealAnswers -> mostra el valor real encara que sigui "desconegut"
+--------------------------------------------------------- */
+function renderSVG(setData, opts={}){
+  const colorBySide = !!opts.colorBySide;
+  const revealAnswers = !!opts.revealAnswers;
+
+  const rawByTri = setData.triangles.map((tri, ti)=>{
+    const real = getRealSides(setData, ti);
+    const pts = lawOfCosinesVertices(real[0], real[1], real[2]);
+    return transformPoints(pts, tri.rot||0, !!tri.flip);
+  });
+
+  const maxRawDim = Math.max(...rawByTri.map(pts=>{
+    const bb = boundingBox(pts);
+    return Math.max(bb.w, bb.h);
+  }));
+  const pxPerUnit = TARGET_MAX_PX / maxRawDim;
+
+  const totalW = CELL_SIZE*3 + GAP*2;
+  let svgParts = [];
+
+  setData.triangles.forEach((tri, ti)=>{
+    const scaledPts = rawByTri[ti].map(p=>({x:p.x*pxPerUnit, y:p.y*pxPerUnit}));
+    const bb = boundingBox(scaledPts);
+    const cellX = ti*(CELL_SIZE+GAP);
+    const tx = cellX + (CELL_SIZE-bb.w)/2 - bb.minX;
+    const ty = (CELL_SIZE-bb.h)/2 - bb.minY;
+    const finalPts = scaledPts.map(p=>({x:p.x+tx, y:p.y+ty}));
+    const c = centroidOf(finalPts);
+    const isRef = tri.hasOwnProperty('forceRef') ? tri.forceRef : tri.sides.every(s=>s!==null);
+    const fillColor = isRef ? '#e6f7f0' : '#eef0fd';
+
+    const polyPts = finalPts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+    svgParts.push(`<polygon points="${polyPts}" fill="${fillColor}" stroke="none"/>`);
+
+    for(let e=0;e<3;e++){
+      const p1=finalPts[e], p2=finalPts[(e+1)%3];
+      const edgeColor = colorBySide ? SIDE_COLORS[e] : (isRef ? '#1a9e6b' : '#5b5fef');
+      svgParts.push(`<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" stroke="${edgeColor}" stroke-width="3"/>`);
+    }
+    for(let e=0;e<3;e++){
+      const p1=finalPts[e], p2=finalPts[(e+1)%3];
+      const lp = labelPos(p1,p2,c,20);
+      const val = tri.sides[e];
+      let displayVal, isUnknown;
+      if(val!==null){ displayVal = fmtNum(val); isUnknown=false; }
+      else if(revealAnswers){
+        const u = setData.unknowns.find(u=>u.t===ti && u.s===e);
+        displayVal = u ? fmtNum(u.answer) : '?';
+        isUnknown = false;
+      } else { displayVal = '?'; isUnknown = true; }
+      const textColor = colorBySide ? SIDE_COLORS[e] : (isUnknown ? '#d64545' : '#222');
+      svgParts.push(`<text x="${lp.x.toFixed(1)}" y="${lp.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="17" font-weight="700" fill="${textColor}">${displayVal}</text>`);
+    }
+    svgParts.push(`<text x="${(cellX+CELL_SIZE/2).toFixed(1)}" y="${CELL_SIZE-8}" text-anchor="middle" font-size="12" fill="#8a8fa3">Triangle ${ti+1}${isRef?' (referència)':''}</text>`);
+  });
+
+  return `<svg viewBox="0 0 ${totalW} ${CELL_SIZE}" xmlns="http://www.w3.org/2000/svg">${svgParts.join('')}</svg>`;
+}
+
+function renderColorLegend(){
+  return `<div class="side-legend">
+    <span class="chip chip-s1">S1</span>
+    <span class="chip chip-s2">S2</span>
+    <span class="chip chip-s3">S3</span>
+    <span style="color:var(--muted);font-size:0.82rem;">— els costats del mateix color es corresponen</span>
+  </div>`;
+}
+
+/* ---------------------------------------------------------
+   EXEMPLE RESOLT (teoria + intro)
+--------------------------------------------------------- */
+function renderExampleHTML(){
+  return `
+    <div class="svg-box">${renderSVG(EXAMPLE_SET, {colorBySide:true, revealAnswers:true})}</div>
+    ${renderColorLegend()}
+    <div class="example-steps">
+      <p><strong>Pas 1.</strong> El triangle verd és el de referència: <strong>S1=3, S2=4, S3=5</strong>.</p>
+      <p><strong>Pas 2.</strong> El segon triangle té <strong>S1=6</strong>. Com que 6 ÷ 3 = 2, la raó de semblança és <strong>2</strong>. Per tant S2 = 4×2 = <strong>8</strong> i S3 = 5×2 = <strong>10</strong>.</p>
+      <p><strong>Pas 3.</strong> El tercer triangle té <strong>S2=6</strong>. Com que 6 ÷ 4 = 1,5, la raó és <strong>1,5</strong>. Per tant S1 = 3×1,5 = <strong>4,5</strong> i S3 = 5×1,5 = <strong>7,5</strong>.</p>
+      <p>Fixa't que els costats del <strong>mateix color</strong> es corresponen entre triangles, encara que estiguin girats, reflectits o dibuixats de mida diferent.</p>
+    </div>`;
+}
+
+const THEORY_INTRO_TEXT = `
+  <p>Dos triangles són <strong>semblants</strong> quan tenen la mateixa forma però potser diferent mida: els seus angles són iguals i els costats corresponents són <strong>proporcionals</strong>.</p>
+  <p style="text-align:center;font-size:1rem;background:#fafbff;border:1px solid var(--border);border-radius:10px;padding:10px 14px;">
+    raó = costat conegut (triangle nou) ÷ costat corresponent (triangle de referència)<br>
+    costat desconegut = costat corresponent (triangle de referència) × raó
+  </p>
+  <h3 style="margin:14px 0 4px;font-size:1rem;color:var(--accent-dark);">Exemple resolt</h3>
+`;
+
+function renderIntro(){
+  cardArea.innerHTML = `<div class="card">
+    <h2 style="margin-top:0;">👋 Abans de començar: com funciona?</h2>
+    <p style="color:var(--muted);">Repassa aquest exemple resolt (el pots tornar a veure sempre amb el botó "📘 Teoria i exemple"). Després podràs practicar amb 8 conjunts nous.</p>
+    ${renderExampleHTML()}
+    <div style="text-align:center;margin-top:18px;">
+      <button class="btn btn-primary" id="startBtn">Comença la pràctica →</button>
+    </div>
+  </div>`;
+  document.getElementById('startBtn').addEventListener('click', ()=>{
+    showIntro = false;
+    renderCard();
+  });
+}
+
+/* ---------------------------------------------------------
+   RENDER PANELL D'INPUTS
+--------------------------------------------------------- */
+function keyFor(t,s){return `${t}-${s}`;}
+
+function renderInputsPanel(setIdx, setData){
+  const st = state[setIdx];
+  const revealed = st.solutionRevealed;
+  let html = '<div class="triangles-inputs">';
+  setData.triangles.forEach((tri, ti)=>{
+    const isRef = tri.sides.every(s=>s!==null);
+    html += `<div class="tri-panel"><h3>Triangle ${ti+1} ${isRef?'<span class="ref-tag">referència</span>':''}</h3>`;
+    const unknownsHere = setData.unknowns.filter(u=>u.t===ti);
+    if(unknownsHere.length===0){
+      html += `<p class="no-unknowns">Tots els costats són coneguts.</p>`;
+    } else {
+      unknownsHere.forEach(u=>{
+        const k = keyFor(u.t,u.s);
+        const val = revealed ? fmtNum(u.answer) : (st.answers[k] || '');
+        const cls = revealed ? 'revealed' : (st.checked[k]===true ? 'correct' : (st.checked[k]===false ? 'incorrect' : ''));
+        html += `<div class="field">
+          <label for="in-${setIdx}-${k}">S${u.s+1} =</label>
+          <input type="text" inputmode="decimal" id="in-${setIdx}-${k}" data-key="${k}" value="${val}" class="${cls}" placeholder="?" ${revealed?'disabled':''}>
+          ${revealed ? '' : `<button type="button" class="hint-btn" data-key="${k}" title="Demana una pista">?</button>`}
+        </div>
+        ${revealed ? '' : `<div class="hint-box" id="hint-${setIdx}-${k}"></div>`}`;
+      });
+    }
+    html += `</div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderSolutionSteps(setData){
+  let html = '<div class="solution-steps"><h3>📖 Solució pas a pas</h3>';
+  setData.unknowns.forEach(u=>{
+    const color = SIDE_COLORS[u.s];
+    html += `<div class="sol-item">
+      <span class="sol-chip" style="background:${color}22;color:${color};border-color:${color}">Triangle ${u.t+1} · S${u.s+1}</span>
+      <ol>${u.hints.map(h=>`<li>${h}</li>`).join('')}</ol>
+      <div class="sol-answer">Resultat: <strong>${fmtNum(u.answer)}</strong></div>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+/* ---------------------------------------------------------
+   RENDER TARGETA PRINCIPAL
+--------------------------------------------------------- */
+function renderCard(){
+  if(showIntro){ stepperEl.innerHTML=''; renderIntro(); return; }
+  if(finished){ renderSummary(); renderStepper(); return; }
+
+  const setData = SETS[current];
+  const st = state[current];
+  const showColor = st.solutionRevealed;
+
+  let rightButtons = '';
+  if(st.solutionRevealed){
+    rightButtons = `<span style="color:var(--muted);font-size:0.85rem;">Solució mostrada — passa al següent conjunt quan vulguis.</span>`;
+  } else {
+    if(st.failedAttempts>=1){
+      rightButtons += `<button class="btn btn-secondary" id="solutionBtn">👀 Veure solució</button>`;
+    }
+    rightButtons += `<button class="btn btn-primary" id="checkBtn">Comprova</button>`;
+  }
+
+  let html = `<div class="card">
+    <div class="card-head">
+      <h2>Conjunt ${current+1} de ${SETS.length}</h2>
+      <button class="flag-btn ${st.flagged?'active':''}" id="flagBtn">🚩 ${st.flagged?'Marcat per revisar':'Marca per revisar'}</button>
+    </div>
+    <div class="svg-box">${renderSVG(setData, {colorBySide:showColor, revealAnswers:showColor})}</div>
+    ${showColor ? renderColorLegend() : ''}
+    ${renderInputsPanel(current, setData)}
+    ${showColor ? renderSolutionSteps(setData) : ''}
+    <div class="feedback-banner" id="feedback"></div>
+    <div class="actions">
+      <div class="left">
+        <button class="btn btn-secondary" id="prevBtn" ${current===0?'disabled':''}>← Anterior</button>
+        <button class="btn btn-secondary" id="nextBtn" ${current===SETS.length-1?'disabled':''}>Següent →</button>
+      </div>
+      <div class="right">${rightButtons}</div>
+    </div>
+  </div>`;
+
+  cardArea.innerHTML = html;
+  attachCardEvents(setData);
+  renderStepper();
+}
+
+function attachCardEvents(setData){
+  const st = state[current];
+
+  cardArea.querySelectorAll('input[data-key]').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      st.answers[inp.dataset.key] = inp.value;
+      if(st.checked[inp.dataset.key] !== undefined){
+        st.checked[inp.dataset.key] = undefined;
+        inp.classList.remove('correct','incorrect');
+      }
+    });
+  });
+
+  cardArea.querySelectorAll('.hint-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const k = btn.dataset.key;
+      const u = setData.unknowns.find(u=>keyFor(u.t,u.s)===k);
+      const level = (st.hintLevel[k]||0);
+      const nextLevel = Math.min(level+1, u.hints.length);
+      st.hintLevel[k] = nextLevel;
+      const box = document.getElementById(`hint-${current}-${k}`);
+      box.innerHTML = u.hints.slice(0,nextLevel).map((h,i)=>`<div><strong>Pista ${i+1}:</strong> ${h}</div>`).join('');
+      box.classList.add('show');
+      if(nextLevel>=u.hints.length){ btn.disabled = true; btn.style.opacity=0.5; }
+    });
+  });
+
+  document.getElementById('flagBtn').addEventListener('click', ()=>{
+    st.flagged = !st.flagged;
+    renderCard();
+  });
+
+  document.getElementById('prevBtn').addEventListener('click', ()=>{
+    if(current>0){ current--; renderCard(); }
+  });
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    if(current<SETS.length-1){ current++; renderCard(); }
+    else { current++; finished=true; renderCard(); }
+  });
+
+  const checkBtn = document.getElementById('checkBtn');
+  if(checkBtn) checkBtn.addEventListener('click', ()=> checkAnswers(setData));
+
+  const solBtn = document.getElementById('solutionBtn');
+  if(solBtn) solBtn.addEventListener('click', ()=> revealSolution());
+}
+
+function parseNum(str){
+  if(str===undefined || str===null) return NaN;
+  const cleaned = String(str).trim().replace(',', '.');
+  if(cleaned==='') return NaN;
+  return parseFloat(cleaned);
+}
+
+function checkAnswers(setData){
+  const st = state[current];
+  st.submitted = true;
+  let allCorrect = true;
+
+  setData.unknowns.forEach(u=>{
+    const k = keyFor(u.t,u.s);
+    const raw = st.answers[k];
+    const val = parseNum(raw);
+    const inp = document.getElementById(`in-${current}-${k}`);
+    if(isNaN(val)){
+      allCorrect = false;
+      inp.classList.remove('correct'); inp.classList.add('incorrect');
+      st.checked[k] = false;
+      return;
+    }
+    const ok = Math.abs(val - u.answer) < 0.05;
+    st.checked[k] = ok;
+    inp.classList.toggle('correct', ok);
+    inp.classList.toggle('incorrect', !ok);
+    if(!ok) allCorrect = false;
+  });
+
+  st.allCorrect = allCorrect;
+  if(!allCorrect) st.failedAttempts = (st.failedAttempts||0) + 1;
+
+  const banner = document.getElementById('feedback');
+  banner.classList.add('show');
+  if(allCorrect){
+    banner.className = 'feedback-banner show ok';
+    banner.innerHTML = '✅ Molt bé! Tots els costats d\'aquest conjunt són correctes.';
+  } else {
+    banner.className = 'feedback-banner show bad';
+    banner.innerHTML = '❌ Encara hi ha algun costat incorrecte o buit. Prova d\'utilitzar les pistes (❓), o consulta la solució completa si cal.';
+  }
+  renderCard();
+}
+
+function revealSolution(){
+  const st = state[current];
+  st.solutionRevealed = true;
+  renderCard();
+}
+
+/* ---------------------------------------------------------
+   STEPPER
+--------------------------------------------------------- */
+function renderStepper(){
+  let html = '';
+  SETS.forEach((s,i)=>{
+    const st = state[i];
+    let cls = 'dot';
+    if(i===current && !finished && !showIntro) cls += ' current';
+    if(st.solutionRevealed){
+      cls += ' revealed';
+    } else if(st.submitted){
+      cls += st.allCorrect ? ' done' : ' done wrong';
+    }
+    if(st.flagged) cls += ' flag';
+    html += `<div class="${cls}" data-idx="${i}">${i+1}</div>`;
+  });
+  stepperEl.innerHTML = html;
+  stepperEl.querySelectorAll('.dot').forEach(d=>{
+    d.addEventListener('click', ()=>{
+      finished = false;
+      showIntro = false;
+      current = parseInt(d.dataset.idx,10);
+      renderCard();
+    });
+  });
+}
+
+/* ---------------------------------------------------------
+   RESUM FINAL
+--------------------------------------------------------- */
+function renderSummary(){
+  const total = SETS.reduce((acc,s)=>acc+s.unknowns.length,0);
+  let correctCount = 0;
+  SETS.forEach((s,i)=>{
+    s.unknowns.forEach(u=>{
+      const k = keyFor(u.t,u.s);
+      if(state[i].checked[k]===true) correctCount++;
+    });
+  });
+  const pct = total>0 ? Math.round((correctCount/total)*100) : 0;
+  const flaggedCount = state.filter(s=>s.flagged).length;
+
+  let rows = SETS.map((s,i)=>{
+    const st = state[i];
+    const answeredAll = s.unknowns.every(u=>st.checked[keyFor(u.t,u.s)]!==undefined);
+    let status;
+    if(st.solutionRevealed) status = '<span class="pill info">Solució mostrada</span>';
+    else if(!answeredAll) status = '<span class="pill bad">Sense acabar</span>';
+    else status = st.allCorrect ? '<span class="pill ok">Correcte</span>' : '<span class="pill bad">Amb errors</span>';
+    const flag = st.flagged ? ' 🚩' : '';
+    return `<tr><td>Conjunt ${i+1}${flag}</td><td>${status}</td></tr>`;
+  }).join('');
+
+  cardArea.innerHTML = `<div class="card summary">
+    <h2>Resultats de la sessió</h2>
+    <div class="score">${correctCount} / ${total}</div>
+    <p style="color:var(--muted)">Costats correctes (${pct}%)${flaggedCount>0 ? ` · ${flaggedCount} conjunt(s) marcat(s) per revisar` : ''}</p>
+    <table>
+      <thead><tr><th>Conjunt</th><th>Estat</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <button class="btn btn-primary" id="restartBtn">Torna a començar</button>
+    <button class="btn btn-ghost" id="reviewBtn">Revisa els conjunts</button>
+  </div>`;
+
+  document.getElementById('restartBtn').addEventListener('click', ()=>{
+    state.forEach(st=>{
+      st.answers={}; st.checked={}; st.hintLevel={}; st.flagged=false;
+      st.submitted=false; st.allCorrect=false; st.failedAttempts=0; st.solutionRevealed=false;
+    });
+    current=0; finished=false; showIntro=false; renderCard();
+  });
+  document.getElementById('reviewBtn').addEventListener('click', ()=>{
+    finished=false;
+    current = 0;
+    const firstUnfinished = SETS.findIndex((s,i)=>!state[i].submitted || (!state[i].allCorrect && !state[i].solutionRevealed));
+    if(firstUnfinished>=0) current = firstUnfinished;
+    renderCard();
+  });
+}
+
+/* ---------------------------------------------------------
+   MODAL DE TEORIA (persistent, fora de cardArea)
+--------------------------------------------------------- */
+document.getElementById('theoryBtn').addEventListener('click', ()=>{
+  document.getElementById('theoryModal').classList.add('show');
+});
+document.getElementById('theoryClose').addEventListener('click', ()=>{
+  document.getElementById('theoryModal').classList.remove('show');
+});
+document.getElementById('theoryModal').addEventListener('click', (e)=>{
+  if(e.target.id === 'theoryModal') e.currentTarget.classList.remove('show');
+});
+document.getElementById('theoryBody').innerHTML = THEORY_INTRO_TEXT + renderExampleHTML();
+
+/* ---------------------------------------------------------
+   INICI
+--------------------------------------------------------- */
+renderCard();
+</script>
+</body>
+</html>
